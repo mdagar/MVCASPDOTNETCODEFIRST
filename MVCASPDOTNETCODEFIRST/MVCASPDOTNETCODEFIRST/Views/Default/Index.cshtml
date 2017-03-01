@@ -1,0 +1,304 @@
+﻿@model MVCASPDOTNETCODEFIRST.Models.DevTest
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Entity Framework with code first </title>
+    <script src="~/Scripts/jquery-1.6.4.min.js"></script>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 5px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f1f1c1;
+        }
+    </style>
+</head>
+
+<body>
+    <p><a href="@Url.Action("BroadCastDBChanges","Default")" target="_blank">Click Here to See Changes in DB</a></p>
+    <br />
+    <p>
+        <ul>
+            <li>
+                Click on <b>Add New Record to Add</b>
+            </li>
+            <li>
+                To see live changes click <b>Click Here to See Changes in DB</b>. <br />It will open a seprate winow which use signal R to get data from DB when some change occur like (Insert, delete , Updaet)
+            </li>
+
+        </ul>
+    </p>
+    <p> <a href="javascript:void(0)" onclick="AddNewRow()">Add New Record</a></p>
+
+    <table id="tblData">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Campaign Name</th>
+                <th>Date</th>
+                <th>Clicks</th>
+                <th>Conversions</th>
+                <th>Impressions</th>
+                <th>AffiliateName</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+
+
+    <script>
+
+        FetchEmployees();
+        function DevJavascriptObject(CampaignName, Date, Clicks, Conversions, Impressions, AffiliateName) {
+            this.CampaignName = CampaignName;
+            this.Date = Date;
+            this.Clicks = Clicks;
+            this.Conversions = Conversions;
+            this.Impressions = Impressions;
+            this.AffiliateName = AffiliateName;
+        }
+
+        function AddNewRow() {
+            $("#tblData tbody").append(
+                "<tr>" +
+                "<td></td>" +
+                "<td><input type='text'/></td>" +
+                "<td><input type='text'/></td>" +
+                "<td><input type='text'/></td>" +
+                "<td><input type='text'/></td>" +
+                "<td><input type='text'/></td>" +
+                "<td><input type='text'/></td>" +
+                "<td><a  href='javascript:void(0)' onclick='SaveRecord(this)'>Save</a>  | <a  href='javascript:void(0)'onclick='Delete(this)'>Cancel</a></td>" +
+                "</tr>");
+        }
+
+
+        function SaveRecord(obj) {
+
+            var par = $(obj).parent().parent(); //tr
+
+            var ID = par.children("td:nth-child(1)");
+            var CampaignName = par.children("td:nth-child(2)");
+            var Date = par.children("td:nth-child(3)");
+            var Clicks = par.children("td:nth-child(4)");
+            var Conversions = par.children("td:nth-child(5)");
+            var Impressions = par.children("td:nth-child(6)");
+            var AffiliateName = par.children("td:nth-child(7)");
+            var tdButtons = par.children("td:nth-child(8)");
+
+            var modifiedDate = Date.children("input[type=text]").val();
+
+
+            var object = {
+                ID: ID.html(),
+                CampaignName: CampaignName.children("input[type=text]").val(),
+                Date: (modifiedDate == '' ? '' : convertDatString(modifiedDate)),
+                Clicks: Clicks.children("input[type=text]").val(),
+                Conversions: Conversions.children("input[type=text]").val(),
+                Impressions: Impressions.children("input[type=text]").val(),
+                AffiliateName: AffiliateName.children("input[type=text]").val()
+            }
+
+
+            $.ajax({
+                url: '/default/SaveRecord',
+                data: object,
+                contentType: 'application/html ; charset:utf-8',
+                type: 'GET',
+                dataType: 'html'
+            }).success(function (result) {
+                FetchEmployees();
+            });
+
+
+            CampaignName.find('input:text').replaceWith(function () {
+                return CampaignName.find('input:text').val();
+            });
+
+            Date.find('input:text').replaceWith(function () {
+                return Date.find('input:text').val();
+            });
+
+            Clicks.find('input:text').replaceWith(function () {
+                return Clicks.find('input:text').val();
+            });
+
+            Conversions.find('input:text').replaceWith(function () {
+                return Conversions.find('input:text').val();
+            });
+
+            Impressions.find('input:text').replaceWith(function () {
+                return Impressions.find('input:text').val();
+            });
+
+            AffiliateName.find('input:text').replaceWith(function () {
+                return AffiliateName.find('input:text').val();
+            });
+
+
+            tdButtons.html("<a href='javascript:void(0)' onclick='Delete(this)'  >Delete</a> | <a  href='javascript:void(0)' onclick='Edit(this)' > EDIT </a>");
+
+        }
+
+
+
+        function Edit(obj) {
+
+            var par = $(obj).parent().parent(); //tr
+            var CampaignName = par.children("td:nth-child(2)");
+            var Date = par.children("td:nth-child(3)");
+            var Clicks = par.children("td:nth-child(4)");
+            var Conversions = par.children("td:nth-child(5)");
+            var Impressions = par.children("td:nth-child(6)");
+            var AffiliateName = par.children("td:nth-child(7)");
+            var tdButtons = par.children("td:nth-child(8)");
+
+            CampaignName.html("<input type='text'  value='" + CampaignName.html() + "'/>");
+            Date.html("<input type='text'  value='" + Date.html() + "'/>");
+            Clicks.html("<input type='text'  value='" + Clicks.html() + "'/>");
+            Conversions.html("<input type='text' value='" + Conversions.html() + "'/>");
+            Impressions.html("<input type='text'  value='" + Impressions.html() + "'/>");
+            AffiliateName.html("<input type='text'  value='" + AffiliateName.html() + "'/>");
+            tdButtons.html("<a href='javascript:void(0)' onclick='SaveRecord(this)' >Save</a> |  <a href='javascript:void(0)' onclick='CancleEdit(this)'>Cancel</a>");
+
+
+        };
+
+        function CancleEdit(obj) {
+
+            var par = $(obj).parent().parent(); //tr
+
+            var CampaignName = par.children("td:nth-child(2)");
+            var Date = par.children("td:nth-child(3)");
+            var Clicks = par.children("td:nth-child(4)");
+            var Conversions = par.children("td:nth-child(5)");
+            var Impressions = par.children("td:nth-child(6)");
+            var AffiliateName = par.children("td:nth-child(7)");
+            var tdButtons = par.children("td:nth-child(8)");
+
+
+            CampaignName.find('input:text').replaceWith(function () {
+                return CampaignName.find('input:text').val();
+            });
+
+            Date.find('input:text').replaceWith(function () {
+                return Date.find('input:text').val();
+            });
+
+            Clicks.find('input:text').replaceWith(function () {
+                return Clicks.find('input:text').val();
+            });
+
+            Conversions.find('input:text').replaceWith(function () {
+                return Conversions.find('input:text').val();
+            });
+
+            Impressions.find('input:text').replaceWith(function () {
+                return Impressions.find('input:text').val();
+            });
+
+            AffiliateName.find('input:text').replaceWith(function () {
+                return AffiliateName.find('input:text').val();
+            });
+
+            tdButtons.html("<a href='javascript:void(0)' onclick='Edit(this)'>Edit</a> |  <a href='javascript:void(0)' onclick='CancleEdit(this)'>Delete</a>");
+        }
+
+        function Delete(obj) {
+
+            var localID = ''
+            var par = $(obj).closest('tr');
+            var ID = par.children("td:nth-child(1)");
+            if (ID.html() == '') {
+                par.remove();
+                return false;
+            }
+            else {
+                localID = ID.html();
+
+                $.ajax({
+                    url: '/default/DeleteRecord',
+                    data: { Id: localID },
+                    contentType: 'application/html ; charset:utf-8',
+                    type: 'GET',
+                    dataType: 'html'
+                }).success(function (result) {
+                    par.remove();
+                });
+
+            }
+        };
+
+
+        function FetchEmployees() {
+
+            $.ajax({
+                url: '/default/GetData',
+                contentType: 'application/html ; charset:utf-8',
+                type: 'GET',
+                dataType: 'html'
+            })
+                .success(function (result) {
+
+                    var obj = jQuery.parseJSON(result);
+                    $('#tblData tr:gt(0)').remove()
+                    var tbl = "";
+                    $.each(obj, function (index, value) {
+                        /// do stuff
+                        tbl += "<tr>";
+                        tbl += "<td>" + value.ID + "</td>";
+                        tbl += "<td>" + value.CampaignName + "</td>";
+                        tbl += "<td>" + parseJsonDate(value.Date) + "</td>";
+                        tbl += "<td>" + value.Clicks + "</td>";
+                        tbl += "<td>" + value.Conversions + "</td>";
+                        tbl += "<td>" + value.Impressions + "</td>";
+                        tbl += "<td>" + value.AffiliateName + "</td>";
+                        tbl += "<td> <a href='javascript:void(0)' onclick=Edit(this)>Edit</a> | <a href='javascript:void(0)' onclick=Delete(this)>Delete</a></td>";
+                        tbl += "</tr>";
+
+                    });
+
+                    $("#tblData").append(tbl)
+
+                })
+        }
+
+        function parseJsonDate(jsonDateString) {
+
+            if (jsonDateString != null)
+                return new Date(parseInt(jsonDateString.replace('/Date(', '')));
+            else
+                return null;
+        }
+
+        function convertDatString(str) {
+            var mnths = {
+                Jan: "01", Feb: "02", Mar: "03", Apr: "04", May: "05", Jun: "06",
+                Jul: "07", Aug: "08", Sep: "09", Oct: "10", Nov: "11", Dec: "12"
+            },
+            date = str.split(" ");
+
+            return [date[3], mnths[date[1]], date[2]].join("-");
+        }
+
+
+    </script>
+
+</body>
+</html>

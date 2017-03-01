@@ -1,0 +1,101 @@
+﻿@{
+    ViewBag.Title = "Chat";
+}
+<h2>Notify DB Changes</h2>
+
+<style>
+    table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 5px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f1f1c1;
+    }
+</style>
+
+<div class="container">
+
+    <table id="tblShowData">
+        <tr>
+            <th>ID</th>
+            <th>Campaign Name</th>
+            <th>Date</th>
+            <th>Clicks</th>
+            <th>Conversions</th>
+            <th>Impressions</th>
+            <th>AffiliateName</th>
+        </tr>
+    </table>
+
+    <ul id="discussion"></ul>
+</div>
+
+<script src="~/Scripts/jquery-1.6.4.min.js"></script>
+<script src="~/Scripts/jquery.signalR-2.2.1.min.js"></script>
+<script src="~/signalr/hubs"></script>
+
+<script>
+    $(function () {
+        // Reference the auto-generated proxy for the hub.
+        var notificationFromHub = $.connection.NofiFyDBChangeshub;
+        // Create a function that the hub can call back to display messages.
+
+        $.connection.hub.start().done(function () {
+            FetchEmployees();
+        });
+
+        // Notify to client with the recent updates
+        notificationFromHub.client.updatedClients = function () {
+            FetchEmployees();
+        };
+
+    });
+
+
+
+    function FetchEmployees() {
+
+        $.ajax({
+            url: '/default/GetData',
+            contentType: 'application/html ; charset:utf-8',
+            type: 'GET',
+            dataType: 'html'
+        })
+            .success(function (result) {
+
+                var obj = jQuery.parseJSON(result);
+                $('#tblShowData tr:gt(0)').remove()
+                var tbl = "";
+                $.each(obj, function (index, value) {
+                    /// do stuff
+                    tbl += "<tr>";
+                    tbl += "<td>" + value.ID + "</td>";
+                    tbl += "<td>" + value.CampaignName + "</td>";
+                    tbl += "<td>" + parseJsonDate(value.Date) + "</td>";
+                    tbl += "<td>" + value.Clicks + "</td>";
+                    tbl += "<td>" + value.Conversions + "</td>";
+                    tbl += "<td>" + value.Impressions + "</td>";
+                    tbl += "<td>" + value.AffiliateName + "</td>";
+                    tbl += "</tr>";
+
+                });
+
+                $("#tblShowData").append(tbl)
+
+            })
+    }
+
+
+    function parseJsonDate(jsonDateString) {
+        if (jsonDateString != null)
+            return new Date(parseInt(jsonDateString.replace('/Date(', '')));
+        else
+            return null;
+    }
+</script>
